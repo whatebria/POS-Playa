@@ -6,6 +6,7 @@ import '../../opening/domain/usecases/get_day_status_use_case.dart';
 import '../../../shared/utils/business_day.dart';
 import '../../../shared/widgets/ui_event.dart';
 import '../domain/usecases/get_daily_summary_use_case.dart';
+import '../domain/usecases/get_daily_sales_use_case.dart';
 import 'summary_state.dart';
 import 'summary_providers.dart';
 
@@ -19,6 +20,8 @@ class SummaryViewModel extends Notifier<SummaryState> {
 
   GetDailySummaryUseCase get _getSummary =>
       ref.read(getDailySummaryUseCaseProvider);
+  GetDailySalesUseCase get _getSales =>
+      ref.read(getDailySalesUseCaseProvider);
   GetDayStatusUseCase get _getDayStatus =>
       ref.read(getDayStatusUseCaseProvider);
 
@@ -35,11 +38,13 @@ class SummaryViewModel extends Notifier<SummaryState> {
     final day = businessDayFrom(DateTime.now());
     final status = await _getDayStatus(businessDay: day);
     final summary = await _getSummary(businessDay: day);
+    final sales = await _getSales(businessDay: day);
 
     state = state.copyWith(
       isLoading: false,
       dayStatus: status,
       summary: summary,
+      sales: sales,
     );
   }
 

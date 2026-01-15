@@ -4,11 +4,13 @@ import 'package:playa/features/withdrawals/domain/entities/withdrawal_reason.dar
 class ReasonGrid extends StatelessWidget {
   final List<WithdrawalReason> reasons;
   final void Function(WithdrawalReason) onSelected;
+  final WithdrawalReason? selectedReason;
 
   const ReasonGrid({
     super.key,
     required this.reasons,
     required this.onSelected,
+    required this.selectedReason,
   });
 
   @override
@@ -24,7 +26,14 @@ class ReasonGrid extends StatelessWidget {
       itemCount: reasons.length,
       itemBuilder: (_, i) {
         final r = reasons[i];
+        final isSelected = selectedReason?.id == r.id;
         return FilledButton(
+          style: isSelected
+              ? FilledButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  foregroundColor: Colors.white,
+                )
+              : null,
           onPressed: () => onSelected(r),
           child: Text(
             r.name,

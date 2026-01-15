@@ -63,7 +63,7 @@ class NumericKeyboard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: key('Limpiar', onTap: onClear)),
+                Expanded(child: key('AC', onTap: onClear)),
                 const SizedBox(width: 8),
                 Expanded(child: key('0', onTap: () => onKey('0'))),
                 const SizedBox(width: 8),

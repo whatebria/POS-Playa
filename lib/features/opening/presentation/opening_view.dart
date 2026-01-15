@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:playa/features/opening/domain/day_status.dart';
-
 import '../../../shared/widgets/loading_overlay.dart';
 import '../../../shared/widgets/ui_event.dart';
 import 'opening_view_model.dart';
@@ -21,21 +19,43 @@ class _OpeningViewState extends ConsumerState<OpeningView> {
 
 
   @override
+  void initState() {
+    super.initState();
+    _sub = ref
+        .read(openingViewModelProvider.notifier)
+        .events
+        .listen(_handleEvent);
+  }
+
+  void _handleEvent(UiEvent event) {
+    if (!mounted) return;
+
+    switch (event) {
+      case ShowSnack():
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(event.message)),
+        );
+        break;
+      case Navigate():
+        Navigator.of(context).pushNamed(event.route);
+        break;
+      case ShowDialogEvent():
+        // No dialogs here for now.
+        break;
+    }
+  }
+
+  @override
   void dispose() {
     _sub?.cancel();
     super.dispose();
   }
 
   @override
-Widget build(BuildContext context) {
-  ref.listen(openingViewModelProvider, (_, __) {
-    final events = ref.read(openingViewModelProvider.notifier).events;
-    // normalmente escucharías eventos de otra forma,
-    // pero si mantienes Stream, el setup va fuera del initState
-  });
-
-  final state = ref.watch(openingViewModelProvider);
-  final vm = ref.read(openingViewModelProvider.notifier);
+  Widget build(BuildContext context) {
+    const enableDebugReopenButton = true;
+    final state = ref.watch(openingViewModelProvider);
+    final vm = ref.read(openingViewModelProvider.notifier);
     return LoadingOverlay(
       visible: state.isLoading,
       child: Scaffold(
@@ -63,16 +83,23 @@ Widget build(BuildContext context) {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed:
-                        state.isLoading || state.dayStatus == DayStatus.unknown
-                        ? null
-                        : vm.submit,
+                    onPressed: state.isLoading ? null : vm.submit,
                     child: const SizedBox(
                       height: 56,
                       child: Center(child: Text('Abrir caja')),
                     ),
                   ),
                 ),
+                if (enableDebugReopenButton) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: state.isLoading ? null : vm.reopenDay,
+                      child: const Text('Reabrir dia (debug)'),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

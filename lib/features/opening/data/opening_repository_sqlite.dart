@@ -68,11 +68,26 @@ class OpeningRepositorySqlite implements OpeningRepository {
       throw OpeningFailure(e.toString());
     }
   }
+
+  @override
+  Future<void> reopenDay({
+    required String businessDay,
+  }) async {
+    final db = await AppDatabase.database;
+    await db.delete(
+      'daily_closures',
+      where: 'business_day = ?',
+      whereArgs: [businessDay],
+    );
+  }
 }
 
 class OpeningFailure implements Exception {
   final String message;
   OpeningFailure(this.message);
+
+  @override
+  String toString() => message;
 }
 
 /// Helper opcional para obtener el businessDay actual (yyyy-MM-dd)

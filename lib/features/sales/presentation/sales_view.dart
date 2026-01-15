@@ -46,11 +46,22 @@ class _SalesViewState extends ConsumerState<SalesView> {
   Widget build(BuildContext context) {
     final state = ref.watch(salesViewModelProvider);
     final vm = ref.read(salesViewModelProvider.notifier);
+    final isFullScreen = ModalRoute.of(context)?.settings.name == '/sales';
 
     return LoadingOverlay(
       visible: state.isLoading,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Ventas')),
+        appBar: AppBar(
+          title: const Text('Ventas'),
+          actions: [
+            if (!isFullScreen)
+              IconButton(
+                icon: const Icon(Icons.open_in_full),
+                tooltip: 'Pantalla completa',
+                onPressed: () => Navigator.of(context).pushNamed('/sales'),
+              ),
+          ],
+        ),
         body: Column(
           children: [
             Expanded(

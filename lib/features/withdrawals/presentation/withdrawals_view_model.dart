@@ -75,6 +75,9 @@ class WithdrawalsViewModel extends Notifier<WithdrawalsState> {
   void changeNote(String v) => state = state.copyWith(note: v);
 
   Future<void> submit() async {
+    final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getDayStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
     if (state.dayStatus != DayStatus.open) {
       _events.add(
         const ShowSnack('Debe abrir caja antes de operar', SnackType.error),
@@ -106,11 +109,21 @@ class WithdrawalsViewModel extends Notifier<WithdrawalsState> {
   }
 
   Future<void> confirm() async {
+    final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getDayStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
+    if (state.dayStatus != DayStatus.open) {
+      _events.add(
+        const ShowSnack('Debe abrir caja antes de operar', SnackType.error),
+      );
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
 
     try {
       await _register(
-        businessDay: businessDayFrom(DateTime.now()),
+        businessDay: day,
         reasonId: state.selectedReason!.id,
         amountClp: state.amountClp,
         paymentMethod: state.paymentMethod,
@@ -120,6 +133,7 @@ class WithdrawalsViewModel extends Notifier<WithdrawalsState> {
 
       state = WithdrawalsState.initial().copyWith(
         dayStatus: DayStatus.open,
+        reasons: state.reasons,
       );
 
       _events.add(const ShowSnack('Retiro registrado', SnackType.success));

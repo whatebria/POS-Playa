@@ -19,7 +19,7 @@ class CashExpectedCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Efectivo esperado',
+              'Efectivo esperado con vuelto',
               style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 8),

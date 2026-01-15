@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:playa/features/home/presentation/home_screen.dart';
+import 'package:playa/features/sales/presentation/sales_view.dart';
 
 void main() {
   runApp(
@@ -21,8 +22,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.deepPurple,
+        colorSchemeSeed: Colors.blue,
       ),
+      routes: {
+        '/sales': (_) => const SalesView(),
+      },
       home: const HomeScreen(),
     );
   }

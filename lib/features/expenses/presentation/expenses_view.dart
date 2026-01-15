@@ -93,8 +93,10 @@ class _ExpensesViewState extends ConsumerState<ExpensesView> {
               child: CategoryGrid(
                 categories: state.categories,
                 onSelected: vm.selectCategory,
+                selectedCategory: state.selectedCategory,
               ),
             ),
+
 
             AmountInput(
               amountClp: state.amountClp,

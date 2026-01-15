@@ -3,6 +3,8 @@ import '../../sales/domain/enums/payment_method.dart';
 import '../domain/entities/withdrawal_reason.dart';
 
 class WithdrawalsState {
+  static const _sentinel = Object();
+
   final bool isLoading;
   final String? errorMessage;
 
@@ -46,7 +48,7 @@ class WithdrawalsState {
     String? errorMessage,
     DayStatus? dayStatus,
     List<WithdrawalReason>? reasons,
-    WithdrawalReason? selectedReason,
+    Object? selectedReason = _sentinel,
     int? amountClp,
     PaymentMethod? paymentMethod,
     String? note,
@@ -57,7 +59,9 @@ class WithdrawalsState {
       errorMessage: errorMessage,
       dayStatus: dayStatus ?? this.dayStatus,
       reasons: reasons ?? this.reasons,
-      selectedReason: selectedReason,
+      selectedReason: selectedReason == _sentinel
+          ? this.selectedReason
+          : selectedReason as WithdrawalReason?,
       amountClp: amountClp ?? this.amountClp,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       note: note ?? this.note,

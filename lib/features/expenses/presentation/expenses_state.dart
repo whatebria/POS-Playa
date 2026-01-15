@@ -3,6 +3,8 @@ import '../domain/entities/expense_category.dart';
 import '../../sales/domain/enums/payment_method.dart';
 
 class ExpensesState {
+  static const _sentinel = Object();
+
   final bool isLoading;
   final String? errorMessage;
 
@@ -46,7 +48,7 @@ class ExpensesState {
     String? errorMessage,
     DayStatus? dayStatus,
     List<ExpenseCategory>? categories,
-    ExpenseCategory? selectedCategory,
+    Object? selectedCategory = _sentinel,
     int? amountClp,
     PaymentMethod? paymentMethod,
     String? note,
@@ -57,7 +59,9 @@ class ExpensesState {
       errorMessage: errorMessage,
       dayStatus: dayStatus ?? this.dayStatus,
       categories: categories ?? this.categories,
-      selectedCategory: selectedCategory,
+      selectedCategory: selectedCategory == _sentinel
+          ? this.selectedCategory
+          : selectedCategory as ExpenseCategory?,
       amountClp: amountClp ?? this.amountClp,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       note: note ?? this.note,

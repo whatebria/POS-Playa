@@ -12,7 +12,12 @@ import 'widgets/difference_card.dart';
 import 'widgets/close_day_button.dart';
 
 class ClosureView extends ConsumerStatefulWidget {
-  const ClosureView({super.key});
+  final bool isActive;
+
+  const ClosureView({
+    super.key,
+    required this.isActive,
+  });
 
   @override
   ConsumerState<ClosureView> createState() => _ClosureViewState();
@@ -24,9 +29,11 @@ class _ClosureViewState extends ConsumerState<ClosureView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref.read(closureViewModelProvider.notifier).init(),
-    );
+    if (widget.isActive) {
+      Future.microtask(
+        () => ref.read(closureViewModelProvider.notifier).init(),
+      );
+    }
 
     _sub = ref
         .read(closureViewModelProvider.notifier)
@@ -74,6 +81,16 @@ class _ClosureViewState extends ConsumerState<ClosureView> {
   }
 
   @override
+  void didUpdateWidget(covariant ClosureView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isActive && widget.isActive) {
+      Future.microtask(
+        () => ref.read(closureViewModelProvider.notifier).init(),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(closureViewModelProvider);
     final vm = ref.read(closureViewModelProvider.notifier);
@@ -84,12 +101,20 @@ class _ClosureViewState extends ConsumerState<ClosureView> {
         appBar: AppBar(title: const Text('Cierre de caja')),
         body: Column(
           children: [
-            CashExpectedCard(amountClp: state.cashExpected),
-            CashCountedInput(
-              amountClp: state.cashCounted,
-              onTap: vm.openKeyboard,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    CashExpectedCard(amountClp: state.cashExpected),
+                    CashCountedInput(
+                      amountClp: state.cashCounted,
+                      onTap: vm.openKeyboard,
+                    ),
+                    DifferenceCard(differenceClp: state.difference),
+                  ],
+                ),
+              ),
             ),
-            DifferenceCard(differenceClp: state.difference),
 
             if (state.keyboardVisible)
               NumericKeyboard(

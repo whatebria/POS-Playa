@@ -95,8 +95,10 @@ class _WithdrawalsViewState extends ConsumerState<WithdrawalsView> {
               child: ReasonGrid(
                 reasons: state.reasons,
                 onSelected: vm.selectReason,
+                selectedReason: state.selectedReason,
               ),
             ),
+
 
             AmountInput(
               amountClp: state.amountClp,

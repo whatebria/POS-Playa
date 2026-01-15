@@ -91,6 +91,9 @@ SalesState build() {
   }
 
   Future<void> submit() async {
+    final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getDayStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
     if (state.dayStatus != DayStatus.open) {
       _events.add(
         const ShowSnack('Debe abrir caja antes de operar', SnackType.error),
@@ -116,7 +119,7 @@ SalesState build() {
 
     try {
       await _registerSale(
-        businessDay: businessDayFrom(DateTime.now()),
+        businessDay: day,
         items: state.cart,
         paymentMethod: state.paymentMethod!,
         totalClp: state.totalClp,
@@ -125,6 +128,7 @@ SalesState build() {
 
       state = SalesState.initial().copyWith(
         dayStatus: DayStatus.open,
+        products: state.products,
       );
 
       _events.add(const ShowSnack('Venta registrada', SnackType.success));

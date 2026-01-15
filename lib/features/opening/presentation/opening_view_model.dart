@@ -1,4 +1,5 @@
 import 'dart:async';
+// ignore: depend_on_referenced_packages
 import 'package:riverpod/riverpod.dart';
 
 import '../../../shared/utils/business_day.dart';
@@ -7,6 +8,7 @@ import '../domain/day_status.dart';
 import '../domain/opening_repository.dart';
 import '../domain/usecases/get_day_status_use_case.dart';
 import '../domain/usecases/open_cash_day_use_case.dart';
+import '../domain/usecases/reopen_day_use_case.dart';
 import 'opening_state.dart';
 import '../data/opening_repository_sqlite.dart';
 
@@ -23,6 +25,10 @@ final openCashDayUseCaseProvider = Provider<OpenCashDayUseCase>((ref) {
   return OpenCashDayUseCase(ref.watch(openingRepositoryProvider));
 });
 
+final reopenDayUseCaseProvider = Provider<ReopenDayUseCase>((ref) {
+  return ReopenDayUseCase(ref.watch(openingRepositoryProvider));
+});
+
 /// En una app real, esto viene de auth/session.
 final currentUserIdProvider = Provider<String>((ref) => 'USER_DEMO');
 
@@ -35,6 +41,7 @@ class OpeningViewModel extends Notifier<OpeningState> {
 
   GetDayStatusUseCase get _getStatus => ref.read(getDayStatusUseCaseProvider);
   OpenCashDayUseCase get _openDay => ref.read(openCashDayUseCaseProvider);
+  ReopenDayUseCase get _reopenDay => ref.read(reopenDayUseCaseProvider);
   String get _userId => ref.read(currentUserIdProvider);
 
   @override
@@ -44,9 +51,10 @@ class OpeningViewModel extends Notifier<OpeningState> {
       _events.close();
     });
 
-    _loadDayStatus();
-
-    return OpeningState.initial();
+      final initial = OpeningState.initial();
+      // Defer async work until after the initial state is set.
+      Future.microtask(_loadDayStatus);
+      return initial;
   }
 
   Future<void> _loadDayStatus() async {
@@ -96,17 +104,9 @@ class OpeningViewModel extends Notifier<OpeningState> {
 
   Future<void> submit() async {
     final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
     print('🟡 submit con dayStatus = ${state.dayStatus}');
-
-    if (state.dayStatus == DayStatus.unknown) {
-      _events.add(
-        const ShowSnack(
-          'Cargando estado del día, espera un momento',
-          SnackType.info,
-        ),
-      );
-      return;
-    }
 
     // validaciones de flujo (obligatorias)
     if (state.dayStatus == DayStatus.open) {
@@ -137,8 +137,11 @@ class OpeningViewModel extends Notifier<OpeningState> {
       _events.add(const Navigate('/sales'));
     } catch (e) {
       final msg = _mapError(e);
+      final raw = e.toString();
       state = state.copyWith(isLoading: false, errorMessage: msg);
-      _events.add(ShowSnack(msg, SnackType.error));
+      final shown =
+          msg == 'Error al abrir caja' ? 'Error al abrir caja: $raw' : msg;
+      _events.add(ShowSnack(shown, SnackType.error));
     }
   }
 
@@ -147,10 +150,27 @@ class OpeningViewModel extends Notifier<OpeningState> {
 
     // Mensajería estándar solicitada
     if (raw.contains('Día cerrado')) return 'Día cerrado';
-    if (raw.contains('Debe abrir caja antes de operar'))
+    if (raw.contains('Debe abrir caja antes de operar')) {
       return 'Debe abrir caja antes de operar';
+    }
     if (raw.contains('Día ya abierto')) return 'Día ya abierto';
 
     return 'Error al abrir caja';
+  }
+
+  Future<void> reopenDay() async {
+    final day = businessDayFrom(DateTime.now());
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _reopenDay(businessDay: day);
+      final status = await _getStatus(businessDay: day);
+      state = state.copyWith(isLoading: false, dayStatus: status);
+      _events.add(const ShowSnack('Dia reabierto (debug)', SnackType.info));
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+      _events.add(
+        ShowSnack('Error al reabrir dia (debug): $e', SnackType.error),
+      );
+    }
   }
 }

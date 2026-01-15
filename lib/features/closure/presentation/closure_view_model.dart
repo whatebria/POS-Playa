@@ -111,6 +111,10 @@ class ClosureViewModel extends Notifier<ClosureState> {
         userId: _userId,
       );
 
+      state = state.copyWith(
+        isLoading: false,
+        dayStatus: DayStatus.closed,
+      );
       _events.add(
         const ShowSnack('Caja cerrada correctamente', SnackType.success),
       );

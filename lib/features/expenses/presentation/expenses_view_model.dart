@@ -76,10 +76,13 @@ class ExpensesViewModel extends Notifier<ExpensesState> {
   void changeNote(String v) => state = state.copyWith(note: v);
 
   void confirmSensitive() {
-  _doRegister();
+    _doRegister();
 }
 
   Future<void> submit() async {
+    final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getDayStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
     if (state.dayStatus != DayStatus.open) {
       _events.add(
         const ShowSnack('Debe abrir caja antes de operar', SnackType.error),
@@ -121,11 +124,21 @@ class ExpensesViewModel extends Notifier<ExpensesState> {
   }
 
   Future<void> _doRegister() async {
+    final day = businessDayFrom(DateTime.now());
+    final latestStatus = await _getDayStatus(businessDay: day);
+    state = state.copyWith(dayStatus: latestStatus);
+    if (state.dayStatus != DayStatus.open) {
+      _events.add(
+        const ShowSnack('Debe abrir caja antes de operar', SnackType.error),
+      );
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
 
     try {
       await _register(
-        businessDay: businessDayFrom(DateTime.now()),
+        businessDay: day,
         categoryId: state.selectedCategory!.id,
         amountClp: state.amountClp,
         paymentMethod: state.paymentMethod,
@@ -135,6 +148,7 @@ class ExpensesViewModel extends Notifier<ExpensesState> {
 
       state = ExpensesState.initial().copyWith(
         dayStatus: DayStatus.open,
+        categories: state.categories,
       );
 
       _events.add(const ShowSnack('Gasto registrado', SnackType.success));

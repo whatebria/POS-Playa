@@ -9,4 +9,8 @@ abstract class OpeningRepository {
     required String openedByUserId,
     String? note,
   });
+
+  Future<void> reopenDay({
+    required String businessDay,
+  });
 }
